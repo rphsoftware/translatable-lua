@@ -29,7 +29,3 @@ lstate.h
 lstring.c
 lstring.h
 lstrlib.c
-ltable.c
-ltable.h
-ltablib.c
-luac.c

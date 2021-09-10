@@ -88,7 +88,7 @@ static int doargs(int argc, char* argv[])
   {
    output=argv[++i];
    if (output==NULL || *output==0 || (*output=='-' && output[1]!=0))
-    usage("'-o' needs argument");
+    usage(LT_LUAC_ERROR_O_NEEDS_ARGUMENT);
    if (IS("-")) output=NULL;
   }
   else if (IS("-p"))			/* parse only */
@@ -113,7 +113,7 @@ static int doargs(int argc, char* argv[])
  return i;
 }
 
-#define FUNCTION "(function()end)();"
+#define FUNCTION "(" LT_TOKEN_FUNCTION "()" LT_TOKEN_END ")();"
 
 static const char* reader(lua_State* L, void* ud, size_t* size)
 {
@@ -165,7 +165,7 @@ static int pmain(lua_State* L)
  const Proto* f;
  int i;
  tmname=G(L)->tmname;
- if (!lua_checkstack(L,argc)) fatal("too many input files");
+ if (!lua_checkstack(L,argc)) fatal(LT_LUAC_ERROR_TOO_MANY_INPUT);
  for (i=0; i<argc; i++)
  {
   const char* filename=IS("-") ? NULL : argv[i];
@@ -191,9 +191,9 @@ int main(int argc, char* argv[])
  lua_State* L;
  int i=doargs(argc,argv);
  argc-=i; argv+=i;
- if (argc<=0) usage("no input files given");
+ if (argc<=0) usage(LT_LUAC_ERROR_NO_INPUT);
  L=luaL_newstate();
- if (L==NULL) fatal("cannot create state: not enough memory");
+ if (L==NULL) fatal(LT_LUAC_ERROR_CANNOT_NOT_ENOUGH);
  lua_pushcfunction(L,&pmain);
  lua_pushinteger(L,argc);
  lua_pushlightuserdata(L,argv);

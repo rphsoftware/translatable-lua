@@ -403,7 +403,7 @@ static int db_gethook (lua_State *L) {
     return 1;
   }
   else if (hook != hookf)  /* external hook? */
-    lua_pushliteral(L, "external hook");
+    lua_pushliteral(L, LT_LDBLIB_EXTERNAL_HOOK);
   else {  /* hook table must exist */
     lua_getfield(L, LUA_REGISTRYINDEX, HOOKKEY);
     checkstack(L, L1, 1);
@@ -420,11 +420,11 @@ static int db_gethook (lua_State *L) {
 static int db_debug (lua_State *L) {
   for (;;) {
     char buffer[250];
-    lua_writestringerror("%s", "lua_debug> ");
+    lua_writestringerror("%s", LT_LDBLIB_LUA_DEBUG_GT);
     if (fgets(buffer, sizeof(buffer), stdin) == NULL ||
         strcmp(buffer, "cont\n") == 0)
       return 0;
-    if (luaL_loadbuffer(L, buffer, strlen(buffer), "=(debug command)") ||
+    if (luaL_loadbuffer(L, buffer, strlen(buffer), LT_LDBLIB_EQ_DEBUG_COMMAND) ||
         lua_pcall(L, 0, 0, 0))
       lua_writestringerror("%s\n", luaL_tolstring(L, -1, NULL));
     lua_settop(L, 0);  /* remove eventual returns */
@@ -455,16 +455,16 @@ static int db_setcstacklimit (lua_State *L) {
 
 
 static const luaL_Reg dblib[] = {
-  {"debug", db_debug},
-  {"getuservalue", db_getuservalue},
-  {"gethook", db_gethook},
-  {"getinfo", db_getinfo},
-  {"getlocal", db_getlocal},
-  {"getregistry", db_getregistry},
-  {"getmetatable", db_getmetatable},
-  {"getupvalue", db_getupvalue},
-  {"upvaluejoin", db_upvaluejoin},
-  {"upvalueid", db_upvalueid},
+  {LT_LDBLIB_DEBUG, db_debug},
+  {LT_LDBLIB_GETUSERVALUE, db_getuservalue},
+  {LT_LDBLIB_GETHOOK, db_gethook},
+  {LT_LDBLIB_GETINFO, db_getinfo},
+  {LT_LDBLIB_GETLOCAL, db_getlocal},
+  {LT_LDBLIB_GETREGISTRY, db_getregistry},
+  {LT_LDBLIB_GETMETATABLE, db_getmetatable},
+  {LT_LDBLIB_GETUPVALUE, db_getupvalue},
+  {LT_LDBLIB_UPVALUEJOIN, db_upvaluejoin},
+  {LT_LDBLIB_UPVALUEID, db_upvalueid},
   {"setuservalue", db_setuservalue},
   {"sethook", db_sethook},
   {"setlocal", db_setlocal},

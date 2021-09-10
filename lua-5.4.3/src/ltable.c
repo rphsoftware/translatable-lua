@@ -327,7 +327,7 @@ static unsigned int findindex (lua_State *L, Table *t, TValue *key,
   else {
     const TValue *n = getgeneric(t, key, 1);
     if (l_unlikely(isabstkey(n)))
-      luaG_runerror(L, "invalid key to 'next'");  /* key not found */
+      luaG_runerror(L, LT_LTABLE_ERROR_INVALID_KEY);  /* key not found */
     i = cast_int(nodefromval(n) - gnode(t, 0));  /* key index in hash table */
     /* hash elements are numbered after array ones */
     return (i + 1) + asize;
@@ -476,7 +476,7 @@ static void setnodevector (lua_State *L, Table *t, unsigned int size) {
     int i;
     int lsize = luaO_ceillog2(size);
     if (lsize > MAXHBITS || (1u << lsize) > MAXHSIZE)
-      luaG_runerror(L, "table overflow");
+      luaG_runerror(L, LT_LTABLE_ERROR_TABLE_OVERFLOW);
     size = twoto(lsize);
     t->node = luaM_newvector(L, size, Node);
     for (i = 0; i < (int)size; i++) {
@@ -655,7 +655,7 @@ void luaH_newkey (lua_State *L, Table *t, const TValue *key, TValue *value) {
   Node *mp;
   TValue aux;
   if (l_unlikely(ttisnil(key)))
-    luaG_runerror(L, "table index is nil");
+    luaG_runerror(L, LT_LTABLE_ERROR_TABLE_INDEX_NIL);
   else if (ttisfloat(key)) {
     lua_Number f = fltvalue(key);
     lua_Integer k;
@@ -664,7 +664,7 @@ void luaH_newkey (lua_State *L, Table *t, const TValue *key, TValue *value) {
       key = &aux;  /* insert it as an integer */
     }
     else if (l_unlikely(luai_numisnan(f)))
-      luaG_runerror(L, "table index is NaN");
+      luaG_runerror(L, LT_LTABLE_ERROR_TABLE_INDEX_NAN);
   }
   if (ttisnil(value))
     return;  /* do not insert nil values */
