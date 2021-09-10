@@ -1,4 +1,3 @@
-ldblib.c
 ldebug.c
 ldebug.h
 ldo.c

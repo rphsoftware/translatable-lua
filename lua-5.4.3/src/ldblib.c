@@ -465,13 +465,13 @@ static const luaL_Reg dblib[] = {
   {LT_LDBLIB_GETUPVALUE, db_getupvalue},
   {LT_LDBLIB_UPVALUEJOIN, db_upvaluejoin},
   {LT_LDBLIB_UPVALUEID, db_upvalueid},
-  {"setuservalue", db_setuservalue},
-  {"sethook", db_sethook},
-  {"setlocal", db_setlocal},
-  {"setmetatable", db_setmetatable},
-  {"setupvalue", db_setupvalue},
-  {"traceback", db_traceback},
-  {"setcstacklimit", db_setcstacklimit},
+  {LT_LDBLIB_SETUSERVALUE, db_setuservalue},
+  {LT_LDBLIB_SETHOOK, db_sethook},
+  {LT_LDBLIB_SETLOCAL, db_setlocal},
+  {LT_LDBLIB_SETMETATABLE, db_setmetatable},
+  {LT_LDBLIB_SETUPVALUE, db_setupvalue},
+  {LT_LDBLIB_TRACEBACK, db_traceback},
+  {LT_LDBLIB_SETCSTACKLIMIT, db_setcstacklimit},
   {NULL, NULL}
 };
 
@@ -480,4 +480,3 @@ LUAMOD_API int luaopen_debug (lua_State *L) {
   luaL_newlib(L, dblib);
   return 1;
 }
-

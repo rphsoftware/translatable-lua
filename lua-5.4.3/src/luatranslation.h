@@ -287,6 +287,13 @@
 #define LT_LDBLIB_GETUPVALUE "getupvalue"
 #define LT_LDBLIB_UPVALUEJOIN "upvaluejoin"
 #define LT_LDBLIB_UPVALUEID "upvalueid"
+#define LT_LDBLIB_SETUSERVALUE "setuservalue"
+#define LT_LDBLIB_SETHOOK "sethook"
+#define LT_LDBLIB_SETLOCAL "setlocal"
+#define LT_LDBLIB_SETMETATABLE "setmetatable"
+#define LT_LDBLIB_SETUPVALUE "setupvalue"
+#define LT_LDBLIB_TRACEBACK "traceback"
+#define LT_LDBLIB_SETCSTACKLIMIT "setcstacklimit"
 
 // LVM
 #define LT_LUA_LVM_ERROR_ATTEMPT_TO_PERFORM_N0 "attempt to perform 'n%%0'"
@@ -382,3 +389,13 @@
 #define LT_LTABLE_ERROR_TABLE_OVERFLOW "table overflow"
 #define LT_LTABLE_ERROR_TABLE_INDEX_NIL "table index is nil"
 #define LT_LTABLE_ERROR_TABLE_INDEX_NAN "table index is NaN"
+
+// LSTRLIB
+#define LT_LSTRLIB_ERROR_RESULTING_TOO_LARGE "resulting string too large"
+#define LT_LSTRLIB_ERROR_SLICE_TOO_LONG "string slice too long"
+#define LT_LSTRLIB_ERROR_VALUE_OOR "value out of range"
+#define LT_LSTRLIB_ERROR_DUMP_UNABLE "unable to dump given function"
+#define LT_LSTRLIB_ERROR_ATTEMPT_TO_S_A_S_WITH_A_S "attempt to %s a '%s' with a '%s'"
+#define LT_LSTRLIB_ERROR_INVALID_TO_CAPTURE "invalid capture index %%%d"
+#define LT_LSTRLIB_ERROR_INVALID_PATTERN_CAPTURE "invalid pattern capture"
+#define LT_LSTRLIB_ERROR_INVALID_PATTERN_EWP "malformed pattern (ends with '%%')"

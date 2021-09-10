@@ -155,7 +155,7 @@ static int str_rep (lua_State *L) {
   if (n <= 0)
     lua_pushliteral(L, "");
   else if (l_unlikely(l + lsep < l || l + lsep > MAXSIZE / n))
-    return luaL_error(L, "resulting string too large");
+    return luaL_error(L, LT_LSTRLIB_ERROR_RESULTING_TOO_LARGE);
   else {
     size_t totallen = (size_t)n * l + (size_t)(n - 1) * lsep;
     luaL_Buffer b;
@@ -183,9 +183,9 @@ static int str_byte (lua_State *L) {
   int n, i;
   if (posi > pose) return 0;  /* empty interval; return no values */
   if (l_unlikely(pose - posi >= (size_t)INT_MAX))  /* arithmetic overflow? */
-    return luaL_error(L, "string slice too long");
+    return luaL_error(L, LT_LSTRLIB_ERROR_SLICE_TOO_LONG);
   n = (int)(pose -  posi) + 1;
-  luaL_checkstack(L, n, "string slice too long");
+  luaL_checkstack(L, n, LT_LSTRLIB_ERROR_SLICE_TOO_LONG);
   for (i=0; i<n; i++)
     lua_pushinteger(L, uchar(s[posi+i-1]));
   return n;
@@ -199,7 +199,7 @@ static int str_char (lua_State *L) {
   char *p = luaL_buffinitsize(L, &b, n);
   for (i=1; i<=n; i++) {
     lua_Unsigned c = (lua_Unsigned)luaL_checkinteger(L, i);
-    luaL_argcheck(L, c <= (lua_Unsigned)UCHAR_MAX, i, "value out of range");
+    luaL_argcheck(L, c <= (lua_Unsigned)UCHAR_MAX, i, LT_LSTRLIB_ERROR_VALUE_OOR);
     p[i - 1] = uchar(c);
   }
   luaL_pushresultsize(&b, n);
@@ -237,7 +237,7 @@ static int str_dump (lua_State *L) {
   lua_settop(L, 1);  /* ensure function is on the top of the stack */
   state.init = 0;
   if (l_unlikely(lua_dump(L, writer, &state, strip) != 0))
-    return luaL_error(L, "unable to dump given function");
+    return luaL_error(L, LT_LSTRLIB_ERROR_DUMP_UNABLE);
   luaL_pushresult(&state.B);
   return 1;
 }
@@ -278,7 +278,7 @@ static void trymt (lua_State *L, const char *mtname) {
   lua_settop(L, 2);  /* back to the original arguments */
   if (l_unlikely(lua_type(L, 2) == LUA_TSTRING ||
                  !luaL_getmetafield(L, 2, mtname)))
-    luaL_error(L, "attempt to %s a '%s' with a '%s'", mtname + 2,
+    luaL_error(L, LT_LSTRLIB_ERROR_ATTEMPT_TO_S_A_S_WITH_A_S, mtname + 2,
                   luaL_typename(L, -2), luaL_typename(L, -1));
   lua_insert(L, -3);  /* put metamethod before arguments */
   lua_call(L, 2, 1);  /* call metamethod */
@@ -387,7 +387,7 @@ static int check_capture (MatchState *ms, int l) {
   l -= '1';
   if (l_unlikely(l < 0 || l >= ms->level ||
                  ms->capture[l].len == CAP_UNFINISHED))
-    return luaL_error(ms->L, "invalid capture index %%%d", l + 1);
+    return luaL_error(ms->L, LT_LSTRLIB_ERROR_INVALID_TO_CAPTURE, l + 1);
   return l;
 }
 
@@ -396,7 +396,7 @@ static int capture_to_close (MatchState *ms) {
   int level = ms->level;
   for (level--; level>=0; level--)
     if (ms->capture[level].len == CAP_UNFINISHED) return level;
-  return luaL_error(ms->L, "invalid pattern capture");
+  return luaL_error(ms->L, LT_LSTRLIB_ERROR_INVALID_PATTERN_CAPTURE);
 }
 
 
@@ -404,7 +404,7 @@ static const char *classend (MatchState *ms, const char *p) {
   switch (*p++) {
     case L_ESC: {
       if (l_unlikely(p == ms->p_end))
-        luaL_error(ms->L, "malformed pattern (ends with '%%')");
+        luaL_error(ms->L, LT_LSTRLIB_ERROR_INVALID_PATTERN_EWP);
       return p+1;
     }
     case '[': {
