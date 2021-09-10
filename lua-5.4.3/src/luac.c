@@ -181,7 +181,7 @@ static int pmain(lua_State* L)
   luaU_dump(L,f,writer,D,stripping);
   lua_unlock(L);
   if (ferror(D)) cannot("write");
-  if (fclose(D)) cannot("close");
+  if (fclose(D)) cannot(LT_UNC_CLOSE);
  }
  return 0;
 }

@@ -388,7 +388,7 @@ LUA_API int lua_getinfo (lua_State *L, const char *what, lua_Debug *ar) {
   if (*what == '>') {
     ci = NULL;
     func = s2v(L->top - 1);
-    api_check(L, ttisfunction(func), "function expected");
+    api_check(L, ttisfunction(func), LT_LDEBUG_ERROR_FUNCTIONS_EXPECTED);
     what++;  /* skip the '>' */
     L->top--;  /* pop function */
   }
@@ -691,7 +691,7 @@ static const char *varinfo (lua_State *L, const TValue *o) {
 
 l_noret luaG_typeerror (lua_State *L, const TValue *o, const char *op) {
   const char *t = luaT_objtypename(L, o);
-  luaG_runerror(L, "attempt to %s a %s value%s", op, t, varinfo(L, o));
+  luaG_runerror(L, LT_LDEBUG_ERROR_ATTEMPT_TO_S_A_S_VALUE_S, op, t, varinfo(L, o));
 }
 
 
@@ -701,22 +701,22 @@ l_noret luaG_callerror (lua_State *L, const TValue *o) {
   const char *what = (isLua(ci)) ? funcnamefromcode(L, ci, &name) : NULL;
   if (what != NULL) {
     const char *t = luaT_objtypename(L, o);
-    luaG_runerror(L, "%s '%s' is not callable (a %s value)", what, name, t);
+    luaG_runerror(L, LT_LDEBUG_ERROR_S_S_IS_NOT_CALLABLE_A_S_VALUE, what, name, t);
   }
   else
-    luaG_typeerror(L, o, "call");
+    luaG_typeerror(L, o, LT_LDEBUG_ERROR_CALL);
 }
 
 
 l_noret luaG_forerror (lua_State *L, const TValue *o, const char *what) {
-  luaG_runerror(L, "bad 'for' %s (number expected, got %s)",
+  luaG_runerror(L, LT_LDEBUG_ERROR_BAD_FOR_S_NUMBER_EXPECTED_GOT_S,
                    what, luaT_objtypename(L, o));
 }
 
 
 l_noret luaG_concaterror (lua_State *L, const TValue *p1, const TValue *p2) {
   if (ttisstring(p1) || cvt2str(p1)) p1 = p2;
-  luaG_typeerror(L, p1, "concatenate");
+  luaG_typeerror(L, p1, LT_LDEBUG_ERROR_CONCATENATE);
 }
 
 
@@ -735,7 +735,7 @@ l_noret luaG_tointerror (lua_State *L, const TValue *p1, const TValue *p2) {
   lua_Integer temp;
   if (!luaV_tointegerns(p1, &temp, LUA_FLOORN2I))
     p2 = p1;
-  luaG_runerror(L, "number%s has no integer representation", varinfo(L, p2));
+  luaG_runerror(L, LT_LDEBUG_ERROR_NUMBERS_HAS_NO_INTEGER_REPRESENTATION, varinfo(L, p2));
 }
 
 
@@ -743,9 +743,9 @@ l_noret luaG_ordererror (lua_State *L, const TValue *p1, const TValue *p2) {
   const char *t1 = luaT_objtypename(L, p1);
   const char *t2 = luaT_objtypename(L, p2);
   if (strcmp(t1, t2) == 0)
-    luaG_runerror(L, "attempt to compare two %s values", t1);
+    luaG_runerror(L, LT_LDEBUG_ERROR_ATTEMPT_TO_COMPARE_TWO_S_VALUES, t1);
   else
-    luaG_runerror(L, "attempt to compare %s with %s", t1, t2);
+    luaG_runerror(L, LT_LDEBUG_ERROR_ATTEMPT_TO_COMPARE_S_WITH_S, t1, t2);
 }
 
 

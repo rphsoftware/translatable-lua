@@ -430,7 +430,7 @@ void luaE_warnerror (lua_State *L, const char *where) {
                   ? svalue(errobj)
                   : LT_ERROR_OBJECT_IS_NOT_A_STRING;
   /* produce warning "error in %s (%s)" (where, msg) */
-  luaE_warning(L, "error in ", 1);
+  luaE_warning(L, LT_LSTATE_ERROR_ERROR_IN, 1);
   luaE_warning(L, where, 1);
   luaE_warning(L, " (", 1);
   luaE_warning(L, msg, 1);

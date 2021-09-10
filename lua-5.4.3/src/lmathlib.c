@@ -118,7 +118,7 @@ static int math_fmod (lua_State *L) {
   if (lua_isinteger(L, 1) && lua_isinteger(L, 2)) {
     lua_Integer d = lua_tointeger(L, 2);
     if ((lua_Unsigned)d + 1u <= 1u) {  /* special cases: -1 or 0 */
-      luaL_argcheck(L, d != 0, 2, "zero");
+      luaL_argcheck(L, d != 0, 2, LT_LMATHLIB_ZERO);
       lua_pushinteger(L, 0);  /* avoid overflow with 0x80000... / -1 */
     }
     else
@@ -233,7 +233,7 @@ static int math_max (lua_State *L) {
 
 static int math_type (lua_State *L) {
   if (lua_type(L, 1) == LUA_TNUMBER)
-    lua_pushstring(L, (lua_isinteger(L, 1)) ? "integer" : "float");
+    lua_pushstring(L, (lua_isinteger(L, 1)) ? LT_LMATHLIB_INTEGER : LT_LMATHLIB_FLOAT);
   else {
     luaL_checkany(L, 1);
     luaL_pushfail(L);
@@ -578,10 +578,10 @@ static int math_random (lua_State *L) {
       up = luaL_checkinteger(L, 2);
       break;
     }
-    default: return luaL_error(L, "wrong number of arguments");
+    default: return luaL_error(L, LT_LMATHLIB_ERROR_WRONG_ARG);
   }
   /* random integer in the interval [low, up] */
-  luaL_argcheck(L, low <= up, 1, "interval is empty");
+  luaL_argcheck(L, low <= up, 1, LT_LMATHLIB_ERROR_INTERVAL_EMPTY);
   /* project random integer into the interval [0, up - low] */
   p = project(I2UInt(rv), (lua_Unsigned)up - (lua_Unsigned)low, state);
   lua_pushinteger(L, p + (lua_Unsigned)low);
@@ -630,8 +630,8 @@ static int math_randomseed (lua_State *L) {
 
 
 static const luaL_Reg randfuncs[] = {
-  {"random", math_random},
-  {"randomseed", math_randomseed},
+  {LT_LMATHLIB_RANDOM, math_random},
+  {LT_LMATHLIB_RANDOMSEED, math_randomseed},
   {NULL, NULL}
 };
 
@@ -703,44 +703,44 @@ static int math_log10 (lua_State *L) {
 
 
 static const luaL_Reg mathlib[] = {
-  {"abs",   math_abs},
-  {"acos",  math_acos},
-  {"asin",  math_asin},
-  {"atan",  math_atan},
-  {"ceil",  math_ceil},
-  {"cos",   math_cos},
-  {"deg",   math_deg},
-  {"exp",   math_exp},
-  {"tointeger", math_toint},
-  {"floor", math_floor},
-  {"fmod",   math_fmod},
-  {"ult",   math_ult},
-  {"log",   math_log},
-  {"max",   math_max},
-  {"min",   math_min},
-  {"modf",   math_modf},
-  {"rad",   math_rad},
-  {"sin",   math_sin},
-  {"sqrt",  math_sqrt},
-  {"tan",   math_tan},
-  {"type", math_type},
+  {LT_LMATHLIB_ABS,   math_abs},
+  {LT_LMATHLIB_ACOS,  math_acos},
+  {LT_LMATHLIB_ASIN,  math_asin},
+  {LT_LMATHLIB_ATAN,  math_atan},
+  {LT_LMATHLIB_CEIL,  math_ceil},
+  {LT_LMATHLIB_COS,   math_cos},
+  {LT_LMATHLIB_DEG,   math_deg},
+  {LT_LMATHLIB_EXP,   math_exp},
+  {LT_LMATHLIB_TOINTEGER, math_toint},
+  {LT_LMATHLIB_FLOOR, math_floor},
+  {LT_LMATHLIB_FMOD,   math_fmod},
+  {LT_LMATHLIB_ULT,   math_ult},
+  {LT_LMATHLIB_LOG,   math_log},
+  {LT_LMATHLIB_MAX,   math_max},
+  {LT_LMATHLIB_MIN,   math_min},
+  {LT_LMATHLIB_MODF,   math_modf},
+  {LT_LMATHLIB_RAD,   math_rad},
+  {LT_LMATHLIB_SIN,   math_sin},
+  {LT_LMATHLIB_SQRT,  math_sqrt},
+  {LT_LMATHLIB_TAN,   math_tan},
+  {LT_LMATHLIB_TYPE, math_type},
 #if defined(LUA_COMPAT_MATHLIB)
-  {"atan2", math_atan},
-  {"cosh",   math_cosh},
-  {"sinh",   math_sinh},
-  {"tanh",   math_tanh},
-  {"pow",   math_pow},
-  {"frexp", math_frexp},
-  {"ldexp", math_ldexp},
-  {"log10", math_log10},
+  {LT_LMATHLIB_ATAN2, math_atan},
+  {LT_LMATHLIB_COSH,   math_cosh},
+  {LT_LMATHLIB_SINH,   math_sinh},
+  {LT_LMATHLIB_TANH,   math_tanh},
+  {LT_LMATHLIB_POW,   math_pow},
+  {LT_LMATHLIB_FREXP, math_frexp},
+  {LT_LMATHLIB_LDEXP, math_ldexp},
+  {LT_LMATHLIB_LOG10, math_log10},
 #endif
   /* placeholders */
-  {"random", NULL},
-  {"randomseed", NULL},
-  {"pi", NULL},
-  {"huge", NULL},
-  {"maxinteger", NULL},
-  {"mininteger", NULL},
+  {LT_LMATHLIB_RANDOM, NULL},
+  {LT_LMATHLIB_RANDOMSEED, NULL},
+  {LT_LMATHLIB_PI, NULL},
+  {LT_LMATHLIB_HUGE, NULL},
+  {LT_LMATHLIB_MAXINTEGER, NULL},
+  {LT_LMATHLIB_MININTEGER, NULL},
   {NULL, NULL}
 };
 
@@ -751,13 +751,13 @@ static const luaL_Reg mathlib[] = {
 LUAMOD_API int luaopen_math (lua_State *L) {
   luaL_newlib(L, mathlib);
   lua_pushnumber(L, PI);
-  lua_setfield(L, -2, "pi");
+  lua_setfield(L, -2, LT_LMATHLIB_PI);
   lua_pushnumber(L, (lua_Number)HUGE_VAL);
-  lua_setfield(L, -2, "huge");
+  lua_setfield(L, -2, LT_LMATHLIB_HUGE);
   lua_pushinteger(L, LUA_MAXINTEGER);
-  lua_setfield(L, -2, "maxinteger");
+  lua_setfield(L, -2, LT_LMATHLIB_MAXINTEGER);
   lua_pushinteger(L, LUA_MININTEGER);
-  lua_setfield(L, -2, "mininteger");
+  lua_setfield(L, -2, LT_LMATHLIB_MININTEGER);
   setrandfunc(L);
   return 1;
 }

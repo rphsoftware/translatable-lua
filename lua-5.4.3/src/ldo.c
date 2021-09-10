@@ -95,7 +95,7 @@ void luaD_seterrorobj (lua_State *L, int errcode, StkId oldtop) {
       break;
     }
     case LUA_ERRERR: {
-      setsvalue2s(L, oldtop, luaS_newliteral(L, "error in error handling"));
+      setsvalue2s(L, oldtop, luaS_newliteral(L, LT_LDO_ERROR_IN_ERROR_HANDLING));
       break;
     }
     case LUA_OK: {  /* special case only for closing upvalues */
@@ -776,12 +776,12 @@ LUA_API int lua_resume (lua_State *L, lua_State *from, int nargs,
   lua_lock(L);
   if (L->status == LUA_OK) {  /* may be starting a coroutine */
     if (L->ci != &L->base_ci)  /* not in base level? */
-      return resume_error(L, "cannot resume non-suspended coroutine", nargs);
+      return resume_error(L, LT_LDO_ERROR_CANNOT_RESUME_NON_SUSPENDED_COROUTINE, nargs);
     else if (L->top - (L->ci->func + 1) == nargs)  /* no function? */
-      return resume_error(L, "cannot resume dead coroutine", nargs);
+      return resume_error(L, LT_LDO_ERROR_CANNOT_RESUME_DEAD_COROUTINE, nargs);
   }
   else if (L->status != LUA_YIELD)  /* ended with errors? */
-    return resume_error(L, "cannot resume dead coroutine", nargs);
+    return resume_error(L, LT_LDO_ERROR_CANNOT_RESUME_DEAD_COROUTINE, nargs);
   L->nCcalls = (from) ? getCcalls(from) : 0;
   luai_userstateresume(L, nargs);
   api_checknelems(L, (L->status == LUA_OK) ? nargs + 1 : nargs);
@@ -816,16 +816,16 @@ LUA_API int lua_yieldk (lua_State *L, int nresults, lua_KContext ctx,
   api_checknelems(L, nresults);
   if (l_unlikely(!yieldable(L))) {
     if (L != G(L)->mainthread)
-      luaG_runerror(L, "attempt to yield across a C-call boundary");
+      luaG_runerror(L, LT_LDO_ERROR_ATTEMPT_TO_YIELD_ACROSS_A_C_CALL_BOUNDARY);
     else
-      luaG_runerror(L, "attempt to yield from outside a coroutine");
+      luaG_runerror(L, LT_LDO_ERROR_ATTEMPT_TO_YIELD_FROM_OUTSIDE_COROUTINE);
   }
   L->status = LUA_YIELD;
   ci->u2.nyield = nresults;  /* save number of results */
   if (isLua(ci)) {  /* inside a hook? */
     lua_assert(!isLuacode(ci));
-    api_check(L, nresults == 0, "hooks cannot yield values");
-    api_check(L, k == NULL, "hooks cannot continue after yielding");
+    api_check(L, nresults == 0, LT_LDO_ERROR_HOOKS_CANNOT_YIELD_VALUES);
+    api_check(L, k == NULL, LT_LDO_ERROR_HOOKS_CANNOT_CONTINUE_AFTER_YIELDING);
   }
   else {
     if ((ci->u.c.k = k) != NULL)  /* is there a continuation? */
@@ -918,7 +918,7 @@ struct SParser {  /* data to 'f_parser' */
 static void checkmode (lua_State *L, const char *mode, const char *x) {
   if (mode && strchr(mode, x[0]) == NULL) {
     luaO_pushfstring(L,
-       "attempt to load a %s chunk (mode is '%s')", x, mode);
+       LT_LDO_ERROR_ATTEMPT_TO_LOAD_A_S_CHUNK_MODE_IS_S, x, mode);
     luaD_throw(L, LUA_ERRSYNTAX);
   }
 }
@@ -929,11 +929,11 @@ static void f_parser (lua_State *L, void *ud) {
   struct SParser *p = cast(struct SParser *, ud);
   int c = zgetc(p->z);  /* read first character */
   if (c == LUA_SIGNATURE[0]) {
-    checkmode(L, p->mode, "binary");
+    checkmode(L, p->mode, LT_LDO_BINARY);
     cl = luaU_undump(L, p->z, p->name);
   }
   else {
-    checkmode(L, p->mode, "text");
+    checkmode(L, p->mode, LT_LDO_TEXT);
     cl = luaY_parser(L, p->z, &p->buff, &p->dyd, p->name, c);
   }
   lua_assert(cl->nupvalues == cl->p->sizeupvalues);

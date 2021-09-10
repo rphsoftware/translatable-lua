@@ -67,7 +67,7 @@ static void expr (LexState *ls, expdesc *v);
 
 static l_noret error_expected (LexState *ls, int token) {
   luaX_syntaxerror(ls,
-      luaO_pushfstring(ls->L, "%s expected", luaX_token2str(ls, token)));
+      luaO_pushfstring(ls->L, LT_LPARSER_ERROR_S_EXPECTED, luaX_token2str(ls, token)));
 }
 
 
@@ -76,9 +76,9 @@ static l_noret errorlimit (FuncState *fs, int limit, const char *what) {
   const char *msg;
   int line = fs->f->linedefined;
   const char *where = (line == 0)
-                      ? "main function"
-                      : luaO_pushfstring(L, "function at line %d", line);
-  msg = luaO_pushfstring(L, "too many %s (limit is %d) in %s",
+                      ? LT_LPARSER_ERROR_MAIN_FUNCTION
+                      : luaO_pushfstring(L, LT_LPARSER_ERROR_FUNCTION_AT_LINE_D, line);
+  msg = luaO_pushfstring(L, LT_LPARSER_ERROR_TOO_MANY_S,
                              what, limit, where);
   luaX_syntaxerror(fs->ls, msg);
 }
@@ -133,7 +133,7 @@ static void check_match (LexState *ls, int what, int who, int where) {
       error_expected(ls, what);  /* do not need a complex message */
     else {
       luaX_syntaxerror(ls, luaO_pushfstring(ls->L,
-             "%s expected (to close %s at line %d)",
+             LT_LPARSER_ERROR_S_EXPECTED_TO_CLOSE_S_AT_LINE_D,
               luaX_token2str(ls, what), luaX_token2str(ls, who), where));
     }
   }
@@ -299,7 +299,7 @@ static void check_readonly (LexState *ls, expdesc *e) {
   }
   if (varname) {
     const char *msg = luaO_pushfstring(ls->L,
-       "attempt to assign to const variable '%s'", getstr(varname));
+       LT_LPARSER_ERROR_ATTEMPT_TO_ASSIGN_CONST, getstr(varname));
     luaK_semerror(ls, msg);  /* error */
   }
 }
@@ -501,7 +501,7 @@ static void adjust_assign (LexState *ls, int nvars, int nexps, expdesc *e) {
 */
 static l_noret jumpscopeerror (LexState *ls, Labeldesc *gt) {
   const char *varname = getstr(getlocalvardesc(ls->fs, gt->nactvar)->vd.name);
-  const char *msg = "<goto %s> at line %d jumps into the scope of local '%s'";
+  const char *msg = LT_LPARSER_ERROR_GOTO_LOCAL;
   msg = luaO_pushfstring(ls->L, msg, getstr(gt->name), gt->line, varname);
   luaK_semerror(ls, msg);  /* raise the error */
 }
@@ -646,11 +646,11 @@ static void enterblock (FuncState *fs, BlockCnt *bl, lu_byte isloop) {
 static l_noret undefgoto (LexState *ls, Labeldesc *gt) {
   const char *msg;
   if (eqstr(gt->name, luaS_newliteral(ls->L, LT_TOKEN_BREAK))) {
-    msg = "break outside loop at line %d";
+    msg = LT_LPARSER_ERROR_BREAK_OUTSIDE_LOOP;
     msg = luaO_pushfstring(ls->L, msg, gt->line);
   }
   else {
-    msg = "no visible label '%s' for <goto> at line %d";
+    msg = LT_LPARSER_ERROR_NO_VISIBLE_LABEL;
     msg = luaO_pushfstring(ls->L, msg, getstr(gt->name), gt->line);
   }
   luaK_semerror(ls, msg);
@@ -838,7 +838,7 @@ static void recfield (LexState *ls, ConsControl *cc) {
   int reg = ls->fs->freereg;
   expdesc tab, key, val;
   if (ls->t.token == TK_NAME) {
-    checklimit(fs, cc->nh, MAX_INT, "items in a constructor");
+    checklimit(fs, cc->nh, MAX_INT, LT_LPARSER_ERROR_ITEMS_IN_A_CONSTRUCTOR);
     codename(ls, &key);
   }
   else  /* ls->t.token == '[' */
@@ -963,7 +963,7 @@ static void parlist (LexState *ls) {
           isvararg = 1;
           break;
         }
-        default: luaX_syntaxerror(ls, "<name> or '...' expected");
+        default: luaX_syntaxerror(ls, LT_LPARSER_ERROR_NAME_OR_DOTS_EXPECTED);
       }
     } while (!isvararg && testnext(ls, ','));
   }
@@ -1037,7 +1037,7 @@ static void funcargs (LexState *ls, expdesc *f, int line) {
       break;
     }
     default: {
-      luaX_syntaxerror(ls, "function arguments expected");
+      luaX_syntaxerror(ls, LT_LPARSER_ERROR_FUNCTION_ARGS);
     }
   }
   lua_assert(f->k == VNONRELOC);
@@ -1081,7 +1081,7 @@ static void primaryexp (LexState *ls, expdesc *v) {
       return;
     }
     default: {
-      luaX_syntaxerror(ls, "unexpected symbol");
+      luaX_syntaxerror(ls, LT_LPARSER_ERROR_UNEXPECTED_SYMBOL);
     }
   }
 }
@@ -1158,7 +1158,7 @@ static void simpleexp (LexState *ls, expdesc *v) {
     case TK_DOTS: {  /* vararg */
       FuncState *fs = ls->fs;
       check_condition(ls, fs->f->is_vararg,
-                      "cannot use '...' outside a vararg function");
+                      LT_LPARSER_ERROR_NO_DOTS_OUTSIDE_VARARG);
       init_exp(v, VVARARG, luaK_codeABC(fs, OP_VARARG, 0, 0, 1));
       break;
     }
@@ -1362,7 +1362,7 @@ static void check_conflict (LexState *ls, struct LHS_assign *lh, expdesc *v) {
 */
 static void restassign (LexState *ls, struct LHS_assign *lh, int nvars) {
   expdesc e;
-  check_condition(ls, vkisvar(lh->v.k), "syntax error");
+  check_condition(ls, vkisvar(lh->v.k), LT_LPARSER_ERROR_SYNTAX);
   check_readonly(ls, &lh->v);
   if (testnext(ls, ',')) {  /* restassign -> ',' suffixedexp restassign */
     struct LHS_assign nv;
@@ -1436,7 +1436,7 @@ static void breakstat (LexState *ls) {
 static void checkrepeated (LexState *ls, TString *name) {
   Labeldesc *lb = findlabel(ls, name);
   if (l_unlikely(lb != NULL)) {  /* already defined? */
-    const char *msg = "label '%s' already defined on line %d";
+    const char *msg = LT_LPARSER_ERROR_LABEL_ALREADY_DEFINED;
     msg = luaO_pushfstring(ls->L, msg, getstr(name), lb->line);
     luaK_semerror(ls, msg);  /* error */
   }
@@ -1521,7 +1521,7 @@ static void fixforjump (FuncState *fs, int pc, int dest, int back) {
   if (back)
     offset = -offset;
   if (l_unlikely(offset > MAXARG_Bx))
-    luaX_syntaxerror(fs->ls, "control structure too long");
+    luaX_syntaxerror(fs->ls, LT_ERROR_CONTROL_STRUCTURE_TOO_LONG);
   SETARG_Bx(*jmp, offset);
 }
 
@@ -1616,7 +1616,7 @@ static void forstat (LexState *ls, int line) {
   switch (ls->t.token) {
     case '=': fornum(ls, varname, line); break;
     case ',': case TK_IN: forlist(ls, varname); break;
-    default: luaX_syntaxerror(ls, "'=' or 'in' expected");
+    default: luaX_syntaxerror(ls, LT_LPARSER_ERROR_EQ_OR_IN_EXPECTED);
   }
   check_match(ls, TK_END, TK_FOR, line);
   leaveblock(fs);  /* loop scope ('break' jumps to this point) */
@@ -1697,7 +1697,7 @@ static int getlocalattribute (LexState *ls) {
       return RDKTOCLOSE;  /* to-be-closed variable */
     else
       luaK_semerror(ls,
-        luaO_pushfstring(ls->L, "unknown attribute '%s'", attr));
+        luaO_pushfstring(ls->L, LT_LPARSER_ERROR_UNKNOWN_ATTR, attr));
   }
   return VDKREG;  /* regular variable */
 }
@@ -1728,7 +1728,7 @@ static void localstat (LexState *ls) {
     getlocalvardesc(fs, vidx)->vd.kind = kind;
     if (kind == RDKTOCLOSE) {  /* to-be-closed? */
       if (toclose != -1)  /* one already present? */
-        luaK_semerror(ls, "multiple to-be-closed variables in local list");
+        luaK_semerror(ls, LT_LPARSER_ERROR_MULTIPLE_TO_BE_CLOSED);
       toclose = fs->nactvar + nvars;
     }
     nvars++;
@@ -1792,7 +1792,7 @@ static void exprstat (LexState *ls) {
   }
   else {  /* stat -> func */
     Instruction *inst;
-    check_condition(ls, v.v.k == VCALL, "syntax error");
+    check_condition(ls, v.v.k == VCALL, LT_LPARSER_ERROR_SYNTAX);
     inst = &getinstruction(fs, &v.v);
     SETARG_C(*inst, 1);  /* call statement uses no results */
   }

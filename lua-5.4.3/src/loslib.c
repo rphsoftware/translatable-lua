@@ -171,7 +171,7 @@ static int os_tmpname (lua_State *L) {
   int err;
   lua_tmpnam(buff, err);
   if (l_unlikely(err))
-    return luaL_error(L, "unable to generate a unique filename");
+    return luaL_error(L, LT_LOSLIB_ERROR_UNABLE_UNIQUE);
   lua_pushstring(L, buff);
   return 1;
 }
@@ -209,7 +209,7 @@ static int os_clock (lua_State *L) {
 static void setfield (lua_State *L, const char *key, int value, int delta) {
   #if (defined(LUA_NUMTIME) && LUA_MAXINTEGER <= INT_MAX)
     if (l_unlikely(value > LUA_MAXINTEGER - delta))
-      luaL_error(L, "field '%s' is out-of-bound", key);
+      luaL_error(L, LT_LOSLIB_ERROR_FIELD_OOB, key);
   #endif
   lua_pushinteger(L, (lua_Integer)value + delta);
   lua_setfield(L, -2, key);
@@ -228,15 +228,15 @@ static void setboolfield (lua_State *L, const char *key, int value) {
 ** Set all fields from structure 'tm' in the table on top of the stack
 */
 static void setallfields (lua_State *L, struct tm *stm) {
-  setfield(L, "year", stm->tm_year, 1900);
-  setfield(L, "month", stm->tm_mon, 1);
-  setfield(L, "day", stm->tm_mday, 0);
-  setfield(L, "hour", stm->tm_hour, 0);
-  setfield(L, "min", stm->tm_min, 0);
-  setfield(L, "sec", stm->tm_sec, 0);
-  setfield(L, "yday", stm->tm_yday, 1);
-  setfield(L, "wday", stm->tm_wday, 1);
-  setboolfield(L, "isdst", stm->tm_isdst);
+  setfield(L, LT_LOSLIB_DATE_YEAR, stm->tm_year, 1900);
+  setfield(L, LT_LOSLIB_DATE_MONTH, stm->tm_mon, 1);
+  setfield(L, LT_LOSLIB_DATE_DAY, stm->tm_mday, 0);
+  setfield(L, LT_LOSLIB_DATE_HOUR, stm->tm_hour, 0);
+  setfield(L, LT_LOSLIB_DATE_MIN, stm->tm_min, 0);
+  setfield(L, LT_LOSLIB_DATE_SEC, stm->tm_sec, 0);
+  setfield(L, LT_LOSLIB_DATE_YDAY, stm->tm_yday, 1);
+  setfield(L, LT_LOSLIB_DATE_WDAY, stm->tm_wday, 1);
+  setboolfield(L, LT_LOSLIB_DATE_ISDST, stm->tm_isdst);
 }
 
 
@@ -254,16 +254,16 @@ static int getfield (lua_State *L, const char *key, int d, int delta) {
   lua_Integer res = lua_tointegerx(L, -1, &isnum);
   if (!isnum) {  /* field is not an integer? */
     if (l_unlikely(t != LUA_TNIL))  /* some other value? */
-      return luaL_error(L, "field '%s' is not an integer", key);
+      return luaL_error(L, LT_LOSLIB_ERROR_FIELD_NOT_INT, key);
     else if (l_unlikely(d < 0))  /* absent field; no default? */
-      return luaL_error(L, "field '%s' missing in date table", key);
+      return luaL_error(L, LT_LOSLIB_ERROR_FIELD_MISSING_IN_DATE, key);
     res = d;
   }
   else {
     /* unsigned avoids overflow when lua_Integer has 32 bits */
     if (!(res >= 0 ? (lua_Unsigned)res <= (lua_Unsigned)INT_MAX + delta
                    : (lua_Integer)INT_MIN + delta <= res))
-      return luaL_error(L, "field '%s' is out-of-bound", key);
+      return luaL_error(L, LT_LOSLIB_ERROR_FIELD_OOB, key);
     res -= delta;
   }
   lua_pop(L, 1);
@@ -285,14 +285,14 @@ static const char *checkoption (lua_State *L, const char *conv,
     }
   }
   luaL_argerror(L, 1,
-    lua_pushfstring(L, "invalid conversion specifier '%%%s'", conv));
+    lua_pushfstring(L, LT_LOSLIB_ERROR_INVALID_CONVERSION_SPECIFIER, conv));
   return conv;  /* to avoid warnings */
 }
 
 
 static time_t l_checktime (lua_State *L, int arg) {
   l_timet t = l_gettime(L, arg);
-  luaL_argcheck(L, (time_t)t == t, arg, "time out-of-bounds");
+  luaL_argcheck(L, (time_t)t == t, arg, LT_LOSLIB_ERROR_TIME_OOB);
   return (time_t)t;
 }
 
@@ -315,7 +315,7 @@ static int os_date (lua_State *L) {
     stm = l_localtime(&t, &tmr);
   if (stm == NULL)  /* invalid date? */
     return luaL_error(L,
-                 "date result cannot be represented in this installation");
+                 LT_LOSLIB_ERROR_DATE_CANNOT_BE_REPRESENTED);
   if (strcmp(s, "*t") == 0) {
     lua_createtable(L, 0, 9);  /* 9 = number of fields */
     setallfields(L, stm);
@@ -351,19 +351,19 @@ static int os_time (lua_State *L) {
     struct tm ts;
     luaL_checktype(L, 1, LUA_TTABLE);
     lua_settop(L, 1);  /* make sure table is at the top */
-    ts.tm_year = getfield(L, "year", -1, 1900);
-    ts.tm_mon = getfield(L, "month", -1, 1);
-    ts.tm_mday = getfield(L, "day", -1, 0);
-    ts.tm_hour = getfield(L, "hour", 12, 0);
-    ts.tm_min = getfield(L, "min", 0, 0);
-    ts.tm_sec = getfield(L, "sec", 0, 0);
-    ts.tm_isdst = getboolfield(L, "isdst");
+    ts.tm_year = getfield(L, LT_LOSLIB_DATE_YEAR, -1, 1900);
+    ts.tm_mon = getfield(L, LT_LOSLIB_DATE_MONTH, -1, 1);
+    ts.tm_mday = getfield(L, LT_LOSLIB_DATE_DAY, -1, 0);
+    ts.tm_hour = getfield(L, LT_LOSLIB_DATE_HOUR, 12, 0);
+    ts.tm_min = getfield(L, LT_LOSLIB_DATE_MIN, 0, 0);
+    ts.tm_sec = getfield(L, LT_LOSLIB_DATE_SEC, 0, 0);
+    ts.tm_isdst = getboolfield(L, LT_LOSLIB_DATE_ISDST);
     t = mktime(&ts);
     setallfields(L, &ts);  /* update fields with normalized values */
   }
   if (t != (time_t)(l_timet)t || t == (time_t)(-1))
     return luaL_error(L,
-                  "time result cannot be represented in this installation");
+                  LT_LOSLIB_ERROR_TIME_RESULT_CANNOT_BE_REPRESENTED);
   l_pushtime(L, t);
   return 1;
 }
@@ -382,8 +382,13 @@ static int os_difftime (lua_State *L) {
 static int os_setlocale (lua_State *L) {
   static const int cat[] = {LC_ALL, LC_COLLATE, LC_CTYPE, LC_MONETARY,
                       LC_NUMERIC, LC_TIME};
-  static const char *const catnames[] = {"all", "collate", "ctype", "monetary",
-     "numeric", "time", NULL};
+  static const char *const catnames[] = {
+    LT_LOSLIB_CAT_ALL, 
+    LT_LOSLIB_CAT_COLLATE, 
+    LT_LOSLIB_CAT_CTYPE, 
+    LT_LOSLIB_CAT_MONETARY,
+    LT_LOSLIB_CAT_NUMERIC, 
+    LT_LOSLIB_CAT_TIME, NULL};
   const char *l = luaL_optstring(L, 1, NULL);
   int op = luaL_checkoption(L, 2, "all", catnames);
   lua_pushstring(L, setlocale(cat[op], l));
@@ -405,17 +410,17 @@ static int os_exit (lua_State *L) {
 
 
 static const luaL_Reg syslib[] = {
-  {"clock",     os_clock},
-  {"date",      os_date},
-  {"difftime",  os_difftime},
-  {"execute",   os_execute},
+  {LT_LOSLIB_CLOCK,     os_clock},
+  {LT_LOSLIB_DATE,      os_date},
+  {LT_LOSLIB_DIFFTIME,  os_difftime},
+  {LT_LOSLIB_EXECUTE,   os_execute},
   {LT_UNC_EXIT,      os_exit},
-  {"getenv",    os_getenv},
-  {"remove",    os_remove},
-  {"rename",    os_rename},
-  {"setlocale", os_setlocale},
-  {"time",      os_time},
-  {"tmpname",   os_tmpname},
+  {LT_LOSLIB_GETENV,    os_getenv},
+  {LT_LOSLIB_REMOVE,    os_remove},
+  {LT_LOSLIB_RENAME,    os_rename},
+  {LT_LOSLIB_SETLOCALE, os_setlocale},
+  {LT_LOSLIB_TIME,      os_time},
+  {LT_LOSLIB_TMPNAME,   os_tmpname},
   {NULL, NULL}
 };
 
